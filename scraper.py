@@ -8,7 +8,7 @@ def scraper(url, resp):
 
 
 def extract_next_links(url, resp):
-    if resp.status_code == 200:
+    if resp.status == 200:
         # soup class/html parser from external lib, download dependencies using install command from website below
         # https://www.crummy.com/software/BeautifulSoup/bs4/doc/
         soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
