@@ -32,7 +32,7 @@ def extract_next_links(url, resp):
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
-    # If you decide to crawl it, return True; otherwise return False.
+    # If you decide to crawl, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
         parsed = urlparse(url)
