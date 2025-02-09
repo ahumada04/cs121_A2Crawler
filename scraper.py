@@ -1,12 +1,24 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urldefrag
+from bs4 import BeautifulSoup
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
+
 def extract_next_links(url, resp):
-    # Implementation required.
+    if resp.status_code == 200:
+        # soup class/html parser from external lib, download dependencies using install command from website below
+        # https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+        soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+        scraped_links = soup.find_all('a')
+        links = [urldefrag(link.get('href')).url for link in scraped_links if link.get('href')]
+
+        return links
+
+    # KEEPING COMMENTS BELOW ON PURPOSE !!!!!!!!!!!!!!!!!!!!!
+
     # url: the URL that was used to get the page
     # resp.url: the actual url of the page
     # resp.status: the status code returned by the server. 200 is OK, you got the page. Other numbers mean that there was some kind of problem.
@@ -15,6 +27,7 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+    print(resp.error)  # only prints if an error status was found
     return list()
 
 def is_valid(url):
