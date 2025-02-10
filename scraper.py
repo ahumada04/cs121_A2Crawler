@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse, urldefrag
+from urllib.parse import urlparse, urldefrag, urljoin
 from bs4 import BeautifulSoup
 
 def scraper(url, resp):
@@ -13,8 +13,8 @@ def extract_next_links(url, resp):
         # https://www.crummy.com/software/BeautifulSoup/bs4/doc/
         soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
         scraped_links = soup.find_all('a')
-        links = [urldefrag(link.get('href')).url for link in scraped_links if link.get('href')]
-
+        links = [urljoin(url, urldefrag(link.get('href')).url)
+                 for link in scraped_links if link.get('href')]
         return links
 
     # KEEPING COMMENTS BELOW ON PURPOSE !!!!!!!!!!!!!!!!!!!!!
