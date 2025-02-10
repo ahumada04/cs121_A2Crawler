@@ -60,4 +60,4 @@ def is_valid(url):
         except TypeError as e:
             print("TypeError for ", e)
             raise
-gi
+
