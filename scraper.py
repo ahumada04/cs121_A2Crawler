@@ -15,6 +15,7 @@ def extract_next_links(url, resp):
         scraped_links = soup.find_all('a')
         links = [urljoin(url, urldefrag(link.get('href')).url)
                  for link in scraped_links if link.get('href')]
+        # print(f"Extracted {len(links)} links.")
         return links
 
     # KEEPING COMMENTS BELOW ON PURPOSE !!!!!!!!!!!!!!!!!!!!!
@@ -37,7 +38,7 @@ def is_valid(url):
     try:
         parsed = urlparse(url)
 
-        if not re.match(r"[a-zA-Z][[a-zA-Z0-9+.-]*]", parsed.scheme):
+        if not re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*", parsed.scheme):
             return False
 
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
