@@ -15,7 +15,7 @@ def extract_next_links(url, resp):
         scraped_links = soup.find_all('a')
         links = [urljoin(url, urldefrag(link.get('href')).url)
                  for link in scraped_links if link.get('href')]
-        # print(f"Extracted {len(links)} links.")
+        print(f"Extracted {len(links)} links.")
         return links
 
     # KEEPING COMMENTS BELOW ON PURPOSE !!!!!!!!!!!!!!!!!!!!!
@@ -31,6 +31,26 @@ def extract_next_links(url, resp):
     print(resp.error)  # only prints if an error status was found
     return list()
 
+
+# uci domains only allowed
+ALLOWED_DOMAINS = {
+    ".ics.uci.edu",
+    ".cs.uci.edu",
+    ".informatics.uci.edu",
+    ".stat.uci.edu",
+}
+
+def is_allowed_domain(url):
+    parsed = urlparse(url)
+    domain = parsed.netloc  # Extracting domain
+
+    # Check if the domain ends with any of the allowed suffixes
+    for allowed_domain in ALLOWED_DOMAINS:
+        if domain.endswith(allowed_domain):
+            return True
+    return False
+
+
 def is_valid(url):
     # Decide whether to crawl this url or not.
     # If you decide to crawl it, return True; otherwise return False.
@@ -41,8 +61,14 @@ def is_valid(url):
         if not re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*", parsed.scheme):
             return False
 
-        if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
+
+        # Check if the domain is allowed
+        if not is_allowed_domain(url):
             return False
+        
+        
+        # if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
+        #     return False
 
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
