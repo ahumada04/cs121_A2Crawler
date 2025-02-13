@@ -2,6 +2,14 @@ import re
 from urllib.parse import urlparse, urldefrag, urljoin
 from bs4 import BeautifulSoup
 
+# URL_MAXLEN = 225
+# SEGMENTS_MAXLEN = 10
+# QUERY_PARAMS_MAXLEN = 5
+
+
+
+
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
@@ -68,7 +76,13 @@ def is_valid(url):
         
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
-
+        
+        # # Trap detection
+        # if re.search(r'/page/\d+', url):
+        #     return False
+        # if re.search(r'[\?&]version=\d+', url) or re.search(r'[\?&]action=diff&version=\d+', url):
+        #     return False
+        
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
