@@ -1,19 +1,42 @@
 import re
+from json import load, dump
+import os
+import tokenizer as tk
 from urllib.parse import urlparse, urldefrag, urljoin
+
+from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode, urljoin, urldefrag
+
 from bs4 import BeautifulSoup
 
+# param to check if we just started crawling
 # URL_MAXLEN = 225
 # SEGMENTS_MAXLEN = 10
 # QUERY_PARAMS_MAXLEN = 5
 
-
-
-
-
+crawlsDone = 0
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+    return [canonicalize(link) for link in links if is_valid(link)]
+
+def canonicalize(url):
+    parsed = urlparse(url)
+    
+    scheme = parsed.scheme
+    netloc = parsed.netloc
+
+    IGNORE_PARAMS = {"ical", "outlook-ical"}
+    filtered_query = [(key, value) for key, value in parse_qsl(parsed.query) if key not in IGNORE_PARAMS]
+    query = urlencode(sorted(filtered_query))
+
+    path = parsed.path
+    if path != "/" and path.endswith("/"):
+        path = path[:-1]
+
+    fragment = ""  # Remove fragment identifiers
+
+    canonical_url = urlunparse((scheme, netloc, path, "", query, fragment))
+    return canonical_url
 
 
 def extract_next_links(url, resp):
@@ -25,6 +48,45 @@ def extract_next_links(url, resp):
         links = [urljoin(url, urldefrag(link.get('href')).url)
                  for link in scraped_links if link.get('href')]
         print(f"Extracted {len(links)} links.")
+
+        word_list = tk.tokenize(soup.get_text())
+        word_count = len(word_list)
+        webtokens = tk.computeWordFrequencies(word_list)
+        webPageFreq = {url: word_count}
+        # subdomain = extract_subdomain(url)
+
+        # UPDATE JSON WITH:
+
+        global crawlsDone
+        if not os.path.exists("crawlerStat.json"):
+            with open("crawlerStat.json", "w") as jsonFile:
+                dump([webtokens, webPageFreq], jsonFile, index=4)
+        else:
+            if crawlsDone == 0:
+                os.remove("crawlerStat.json")
+
+            with open("crawlerStat.json", "r+") as jsonFile:
+                # index 0 = freq, index 1 = pageFreq
+                jsonDicts = load(jsonFile)
+                jsonFreq = jsonDicts[0]
+                jsonWebPage = jsonDicts[1]
+
+                for key, value in webtokens.items():
+                    if key in jsonFreq:
+                        jsonFreq[key] += value
+                    else:
+                        jsonFreq[key] = value
+
+                jsonWebPage.update(webPageFreq)
+
+                jsonFile.seek(0)
+                jsonFile.truncate()
+                dump([jsonFreq, jsonWebPage], jsonFile, indent=4)
+
+        # LONGEST WEBPAGE (URL, WORD_COUNT)
+        # UPDATE DICTIONARY OF WORDS (WEBTOKENS)
+        # UPDATE SUBDOMAIN CRAWLED
+        crawlsDone += 1
         return links
 
     # KEEPING COMMENTS BELOW ON PURPOSE !!!!!!!!!!!!!!!!!!!!!
@@ -41,6 +103,15 @@ def extract_next_links(url, resp):
 
     print(resp.error)  # only prints if an error status was found
     return list()
+
+
+def extract_subdomain(url):
+    parsed = urlparse(url)
+    domain = parsed.netloc
+
+    # Extract subdomain
+    subdomain = '.'.join(domain.split('.')[:-2])  # Gives subdomain part
+    return subdomain
 
 
 # uci domains only allowed
@@ -60,6 +131,22 @@ def is_allowed_domain(url):
         if domain.endswith(allowed_domain):
             return True
     return False
+
+
+# list of paths TO AVOID
+# update as we go
+BANNED_PATH = {
+    "/events/"
+    # ....
+}
+
+
+def is_allowed_path(url):
+    path = urlparse(url).path
+    # Check if the path is in any of the banned pathes
+    for banned_paths in BANNED_PATH:
+        if path == banned_paths:
+            return False
 
 
 def is_valid(url):
@@ -82,7 +169,12 @@ def is_valid(url):
         # Check if the domain is allowed
         if not is_allowed_domain(url):
             return False
-        
+
+        # CURRENTLY COMMENTED OUT CAUSE UNSURE IF IT WORKS AS INTENDED
+        # Check if the path is allowed (avoiding junk paths like calendars)
+        # if not is_allowed_path(parsed.netloc):
+        #     return False
+
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
         
@@ -100,7 +192,7 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|war|apk|img|sql)$", parsed.path.lower())
 
     except TypeError as e:
         print("TypeError for ", e)
