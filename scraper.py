@@ -30,10 +30,12 @@ def extract_next_links(url, resp):
         # word_list = tk.tokenize(soup.get_text())
         # word_count = len(word_list)
         # webtokens = tk.computeWordFrequencies(word_list)
+        # subdomain = extract_subdomain(url)
 
         # UPDATE JSON WITH:
         # LONGEST WEBPAGE (URL, WORD_COUNT)
         # UPDATE DICTIONARY OF WORDS (WEBTOKENS)
+        # UPDATE SUBDOMAIN CRAWLED
 
         return links
 
@@ -49,6 +51,15 @@ def extract_next_links(url, resp):
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     print(resp.error)  # only prints if an error status was found
     return list()
+
+
+def extract_subdomain(url):
+    parsed = urlparse(url)
+    domain = parsed.netloc
+
+    # Extract subdomain
+    subdomain = '.'.join(domain.split('.')[:-2])  # Gives subdomain part
+    return subdomain
 
 
 # uci domains only allowed
