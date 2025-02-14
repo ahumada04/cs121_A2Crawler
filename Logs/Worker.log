@@ -6366,3 +6366,44 @@
 2025-02-13 08:20:04,865 - Worker-0 - INFO - Downloaded webcal://isg.ics.uci.edu/?eventDisplay=list&ical=1&post_type=tribe_events&tribe-bar-date=2024-07-25, status <603>, using cache ('styx.ics.uci.edu', 9014).
 2025-02-13 08:20:05,377 - Worker-0 - INFO - Downloaded https://isg.ics.uci.edu/events/tag/talks/day/2024-07-24, status <200>, using cache ('styx.ics.uci.edu', 9014).
 2025-02-13 08:21:45,982 - Worker-0 - INFO - Downloaded https://isg.ics.uci.edu/events/tag/talks/day/2024-07-24?outlook-ical=1, status <602>, using cache ('styx.ics.uci.edu', 9014).
+2025-02-14 12:49:29,814 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.
+2025-02-14 12:49:41,606 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:56:14,561 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.
+2025-02-14 12:56:19,015 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:04,532 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:05,064 - Worker-0 - INFO - Downloaded https://www.informatics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:05,612 - Worker-0 - INFO - Downloaded https://www.cs.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:06,183 - Worker-0 - INFO - Downloaded https://www.ics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:06,762 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.
+2025-02-14 12:57:14,650 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:16,547 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:17,078 - Worker-0 - INFO - Downloaded https://www.informatics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:17,630 - Worker-0 - INFO - Downloaded https://www.cs.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:18,203 - Worker-0 - INFO - Downloaded https://www.ics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:57:18,785 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.
+2025-02-14 12:59:15,240 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:17,176 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:17,706 - Worker-0 - INFO - Downloaded https://www.informatics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:18,254 - Worker-0 - INFO - Downloaded https://www.cs.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:18,823 - Worker-0 - INFO - Downloaded https://www.ics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:19,402 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.
+2025-02-14 12:59:31,534 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.
+2025-02-14 12:59:50,816 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:52,960 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:53,491 - Worker-0 - INFO - Downloaded https://www.informatics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:54,039 - Worker-0 - INFO - Downloaded https://www.cs.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:54,608 - Worker-0 - INFO - Downloaded https://www.ics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 12:59:55,203 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.
+2025-02-14 13:00:19,677 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.
+2025-02-14 13:00:23,344 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:00:27,014 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:00:27,590 - Worker-0 - INFO - Downloaded https://www.informatics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:00:28,204 - Worker-0 - INFO - Downloaded https://www.cs.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:00:28,862 - Worker-0 - INFO - Downloaded https://www.ics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:00:29,524 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.
+2025-02-14 13:01:13,826 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:01:16,081 - Worker-0 - INFO - Downloaded https://www.stat.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:01:16,646 - Worker-0 - INFO - Downloaded https://www.informatics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:01:17,263 - Worker-0 - INFO - Downloaded https://www.cs.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:01:17,910 - Worker-0 - INFO - Downloaded https://www.ics.uci.edu, status <200>, using cache ('styx.ics.uci.edu', 9008).
+2025-02-14 13:01:18,579 - Worker-0 - INFO - Frontier is empty. Stopping Crawler.

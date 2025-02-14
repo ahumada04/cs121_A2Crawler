@@ -60,7 +60,7 @@ def extract_next_links(url, resp):
         global crawlsDone
         if not os.path.exists("crawlerStat.json"):
             with open("crawlerStat.json", "w") as jsonFile:
-                dump([webtokens, webPageFreq], jsonFile, index=4)
+                dump([webtokens, webPageFreq], jsonFile, indent=4)
         else:
             if crawlsDone == 0:
                 os.remove("crawlerStat.json")
@@ -156,15 +156,12 @@ def is_valid(url):
     try:
         parsed = urlparse(url)
 
-        if not re.match(r"[a-zA-Z][[a-zA-Z0-9+.-]*]", parsed.scheme):
-            return False
+        # BUNS CODE, DELETE IF CRAWLER WORKS WITHOUT IT
+        # if not re.match(r"[a-zA-Z][[a-zA-Z0-9+.-]*]", parsed.scheme):
+        #     return False
 
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
-
-        if not re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*", parsed.scheme):
-            return False
-
 
         # Check if the domain is allowed
         if not is_allowed_domain(url):
