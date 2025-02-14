@@ -1,6 +1,10 @@
 import re
+<<<<<<< Updated upstream
 import tokenizer as tk
 from urllib.parse import urlparse, urldefrag, urljoin
+=======
+from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode, urljoin, urldefrag
+>>>>>>> Stashed changes
 from bs4 import BeautifulSoup
 
 
@@ -9,12 +13,29 @@ from bs4 import BeautifulSoup
 # QUERY_PARAMS_MAXLEN = 5
 
 
-
-
-
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+    return [canonicalize(link) for link in links if is_valid(link)]
+
+def canonicalize(url):
+    parsed = urlparse(url)
+    
+    scheme = parsed.scheme
+    netloc = parsed.netloc
+
+    IGNORE_PARAMS = {"ical", "outlook-ical"}
+    filtered_query = [(key, value) for key, value in parse_qsl(parsed.query) if key not in IGNORE_PARAMS]
+    query = urlencode(sorted(filtered_query))
+
+    path = parsed.path
+    if path != "/" and path.endswith("/"):
+        path = path[:-1]
+
+    fragment = ""  # Remove fragment identifiers
+
+    canonical_url = urlunparse((scheme, netloc, path, "", query, fragment))
+    return canonical_url
+    
 
 
 def extract_next_links(url, resp):
@@ -134,7 +155,7 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|war|apk|img|sql)$", parsed.path.lower())
 
     except TypeError as e:
         print("TypeError for ", e)
