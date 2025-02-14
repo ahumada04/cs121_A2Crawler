@@ -1,6 +1,6 @@
 from configparser import ConfigParser
 from argparse import ArgumentParser
-
+from os import path, remove
 from utils.server_registration import get_cache_server
 from utils.config import Config
 from crawler import Crawler
@@ -11,6 +11,10 @@ def main(config_file, restart):
     cparser.read(config_file)
     config = Config(cparser)
     config.cache_server = get_cache_server(config, restart)
+
+    if restart and path.exists("crawlerStat.json"):
+        remove("crawlerStat.json")
+
     crawler = Crawler(config, restart)
     crawler.start()
 
