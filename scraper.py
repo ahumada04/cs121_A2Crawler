@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    return [canonicalize(link) for link in links if is_valid(link)]
+    return [link for link in links if is_valid(link)]
 
 def canonicalize(url):
     parsed = urlparse(url)
@@ -53,11 +53,12 @@ def extract_next_links(url, resp):
         webPageFreq = {url: word_count}
         # subdomain = extract_subdomain(url)
 
-        # UPDATE JSON WITH:
+        # # UPDATE JSON WITH:
 
         if not os.path.exists("crawlerStat.json"):
             with open("crawlerStat.json", "w") as jsonFile:
                 dump([webtokens, webPageFreq], jsonFile, indent=4, ensure_ascii=False)
+
         else:
             with open("crawlerStat.json", "r+", encoding="utf-8") as jsonFile:
                 jsonDicts = load(jsonFile)
@@ -75,7 +76,7 @@ def extract_next_links(url, resp):
         # LONGEST WEBPAGE (URL, WORD_COUNT)
         # UPDATE DICTIONARY OF WORDS (WEBTOKENS)
         # UPDATE SUBDOMAIN CRAWLED
-        crawlsDone += 1
+
         return links
 
     # KEEPING COMMENTS BELOW ON PURPOSE !!!!!!!!!!!!!!!!!!!!!
@@ -126,6 +127,7 @@ def is_allowed_domain(url):
 # update as we go
 BANNED_PATH = {
     "/events/"
+    "/pdf/"
     # ....
 }
 
@@ -136,6 +138,7 @@ def is_allowed_path(url):
     for banned_paths in BANNED_PATH:
         if path == banned_paths:
             return False
+    return True
 
 
 def is_valid(url):
@@ -145,17 +148,10 @@ def is_valid(url):
     try:
         parsed = urlparse(url)
 
-        if not re.match(r"[a-zA-Z][[a-zA-Z0-9+.-]*]", parsed.scheme):
-            return False
-
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
 
         if not re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*", parsed.scheme):
-            return False
-
-        # Check for infinite dynamically generated pages
-        if re.search(r'/page/\d+', url) or re.search(r'[\?&]id=\d+', url):
             return False
 
         # Check if the domain is allowed
@@ -164,17 +160,17 @@ def is_valid(url):
 
         # CURRENTLY COMMENTED OUT CAUSE UNSURE IF IT WORKS AS INTENDED
         # Check if the path is allowed (avoiding junk paths like calendars)
-        # if not is_allowed_path(parsed.netloc):
-        #     return False
+        if not is_allowed_path(parsed.netloc):
+            return False
 
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
         
         # # Trap detection
-        # if re.search(r'/page/\d+', url):
-        #     return False
-        # if re.search(r'[\?&]version=\d+', url) or re.search(r'[\?&]action=diff&version=\d+', url):
-        #     return False
+        if re.search(r'/page/\d+', url):
+            return False
+        if re.search(r'[\?&]version=\d+', url) or re.search(r'[\?&]action=diff&version=\d+', url):
+            return False
 
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
