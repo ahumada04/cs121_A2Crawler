@@ -13,8 +13,6 @@ from bs4 import BeautifulSoup
 # SEGMENTS_MAXLEN = 10
 # QUERY_PARAMS_MAXLEN = 5
 
-crawlsDone = 0
-
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [canonicalize(link) for link in links if is_valid(link)]
@@ -57,31 +55,22 @@ def extract_next_links(url, resp):
 
         # UPDATE JSON WITH:
 
-        global crawlsDone
         if not os.path.exists("crawlerStat.json"):
             with open("crawlerStat.json", "w") as jsonFile:
-                dump([webtokens, webPageFreq], jsonFile, index=4)
+                dump([webtokens, webPageFreq], jsonFile, indent=4, ensure_ascii=False)
         else:
-            if crawlsDone == 0:
-                os.remove("crawlerStat.json")
-
-            with open("crawlerStat.json", "r+") as jsonFile:
-                # index 0 = freq, index 1 = pageFreq
+            with open("crawlerStat.json", "r+", encoding="utf-8") as jsonFile:
                 jsonDicts = load(jsonFile)
-                jsonFreq = jsonDicts[0]
-                jsonWebPage = jsonDicts[1]
+                jsonFreq, jsonWebPage = jsonDicts
 
                 for key, value in webtokens.items():
-                    if key in jsonFreq:
-                        jsonFreq[key] += value
-                    else:
-                        jsonFreq[key] = value
+                    jsonFreq[key] = jsonFreq.get(key, 0) + value
 
                 jsonWebPage.update(webPageFreq)
 
                 jsonFile.seek(0)
                 jsonFile.truncate()
-                dump([jsonFreq, jsonWebPage], jsonFile, indent=4)
+                dump([jsonFreq, jsonWebPage], jsonFile, indent=4, ensure_ascii=False)
 
         # LONGEST WEBPAGE (URL, WORD_COUNT)
         # UPDATE DICTIONARY OF WORDS (WEBTOKENS)
@@ -165,6 +154,9 @@ def is_valid(url):
         if not re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*", parsed.scheme):
             return False
 
+        # Check for infinite dynamically generated pages
+        if re.search(r'/page/\d+', url) or re.search(r'[\?&]id=\d+', url):
+            return False
 
         # Check if the domain is allowed
         if not is_allowed_domain(url):
