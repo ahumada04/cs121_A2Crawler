@@ -1,5 +1,14 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urldefrag, urljoin
+from bs4 import BeautifulSoup
+
+# URL_MAXLEN = 225
+# SEGMENTS_MAXLEN = 10
+# QUERY_PARAMS_MAXLEN = 5
+
+
+
+
 
 
 def scraper(url, resp):
@@ -8,7 +17,18 @@ def scraper(url, resp):
 
 
 def extract_next_links(url, resp):
-    # Implementation required.
+    if resp.status == 200:
+        # soup class/html parser from external lib, download dependencies using install command from website below
+        # https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+        soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+        scraped_links = soup.find_all('a')
+        links = [urljoin(url, urldefrag(link.get('href')).url)
+                 for link in scraped_links if link.get('href')]
+        print(f"Extracted {len(links)} links.")
+        return links
+
+    # KEEPING COMMENTS BELOW ON PURPOSE !!!!!!!!!!!!!!!!!!!!!
+
     # url: the URL that was used to get the page
     # resp.url: the actual url of the page
     # resp.status: the status code returned by the server. 200 is OK, you got the page. Other numbers mean that there was some kind of problem.
@@ -19,11 +39,31 @@ def extract_next_links(url, resp):
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
 
 
+    print(resp.error)  # only prints if an error status was found
     return list()
 
 
+# uci domains only allowed
+ALLOWED_DOMAINS = {
+    ".ics.uci.edu",
+    ".cs.uci.edu",
+    ".informatics.uci.edu",
+    ".stat.uci.edu",
+}
+
+def is_allowed_domain(url):
+    parsed = urlparse(url)
+    domain = parsed.netloc  # Extracting domain
+
+    # Check if the domain ends with any of the allowed suffixes
+    for allowed_domain in ALLOWED_DOMAINS:
+        if domain.endswith(allowed_domain):
+            return True
+    return False
+
+
 def is_valid(url):
-    # Decide whether to crawl this url or not. 
+    # Decide whether to crawl this url or not.
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
@@ -34,6 +74,23 @@ def is_valid(url):
 
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
+
+        if not re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*", parsed.scheme):
+            return False
+
+
+        # Check if the domain is allowed
+        if not is_allowed_domain(url):
+            return False
+        
+        if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
+            return False
+        
+        # # Trap detection
+        # if re.search(r'/page/\d+', url):
+        #     return False
+        # if re.search(r'[\?&]version=\d+', url) or re.search(r'[\?&]action=diff&version=\d+', url):
+        #     return False
 
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
@@ -48,3 +105,4 @@ def is_valid(url):
     except TypeError as e:
         print("TypeError for ", e)
         raise
+
