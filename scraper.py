@@ -1,6 +1,8 @@
 import re
+import tokenizer as tk
 from urllib.parse import urlparse, urldefrag, urljoin
 from bs4 import BeautifulSoup
+
 
 # URL_MAXLEN = 225
 # SEGMENTS_MAXLEN = 10
@@ -24,6 +26,15 @@ def extract_next_links(url, resp):
         links = [urljoin(url, urldefrag(link.get('href')).url)
                  for link in scraped_links if link.get('href')]
         print(f"Extracted {len(links)} links.")
+
+        # word_list = tk.tokenize(soup.get_text())
+        # word_count = len(word_list)
+        # webtokens = tk.computeWordFrequencies(word_list)
+
+        # UPDATE JSON WITH:
+        # LONGEST WEBPAGE (URL, WORD_COUNT)
+        # UPDATE DICTIONARY OF WORDS (WEBTOKENS)
+
         return links
 
     # KEEPING COMMENTS BELOW ON PURPOSE !!!!!!!!!!!!!!!!!!!!!
@@ -59,6 +70,22 @@ def is_allowed_domain(url):
     return False
 
 
+# list of paths TO AVOID
+# update as we go
+BANNED_PATH = {
+    "/events/"
+    # ....
+}
+
+
+def is_allowed_path(url):
+    path = urlparse(url).path
+    # Check if the path is in any of the banned pathes
+    for banned_paths in BANNED_PATH:
+        if path == banned_paths:
+            return False
+
+
 def is_valid(url):
     # Decide whether to crawl this url or not.
     # If you decide to crawl it, return True; otherwise return False.
@@ -73,7 +100,12 @@ def is_valid(url):
         # Check if the domain is allowed
         if not is_allowed_domain(url):
             return False
-        
+
+        # CURRENTLY COMMENTED OUT CAUSE UNSURE IF IT WORKS AS INTENDED
+        # Check if the path is allowed (avoiding junk paths like calendars)
+        # if not is_allowed_path(parsed.netloc):
+        #     return False
+
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
         
