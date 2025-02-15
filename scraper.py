@@ -13,6 +13,10 @@ from bs4 import BeautifulSoup
 # SEGMENTS_MAXLEN = 10
 # QUERY_PARAMS_MAXLEN = 5
 #SIMHASH_THRESHOLD = 6  # Max Hamming distance for duplicates
+
+MAX_FILE_SIZE = 10 * 1024 * 1024 
+
+
 class SimHash:
     def __init__(self, hash_size=64):
         self.hash_size = hash_size
@@ -126,6 +130,12 @@ def extract_next_links(url, resp):
     if resp.status == 200:
         # soup class/html parser from external lib, download dependencies using install command from website below
         # https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+
+        content_length = len(resp.raw_response.content)
+        if content_length > MAX_FILE_SIZE:
+            print(f"Skipping {url} (File too large: {content_length} bytes)")
+            return []
+        
         soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
         scraped_links = soup.find_all('a')
         links = [urljoin(url, urldefrag(link.get('href')).url)
@@ -171,7 +181,7 @@ def extract_subdomain(url):
     return subdomain
 
 
-# uci domains only alloweddd
+# uci domains only allowedddd
 ALLOWED_DOMAINS = {
     ".ics.uci.edu",
     ".cs.uci.edu",
