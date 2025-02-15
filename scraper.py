@@ -5,6 +5,7 @@ from json import load, dump
 import os
 import tokenizer as tk
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode, urljoin, urldefrag
+import requests
 
 from bs4 import BeautifulSoup
 
@@ -121,6 +122,51 @@ def jsonStats(soup_text, url):
 
     return True
 
+def handleRedirects(url, maxRedirectLimit):
+    
+    visitedURLS = set()
+    currentURL = url
+    redirectCounter = 0
+    
+    while redirectCounter < maxRedirectLimit:
+        if currentURL in visitedURLS:
+            print(f"Loop found in {currentURL}. Extracted 0 links.")
+            return list()
+
+        visitedURLS.add(currentURL)
+        
+        try:
+            response = requests.get(currentURL, allow_redirects = False, timeout = 5)
+        
+        except requests.exceptions.RequestException as e:
+            print(f"Request Fail: {e}")
+            return list()
+        
+        if response.status_code == 200:
+            return currentURL # Should not return currentURL needs to return the extracted links from successful status code 
+        elif response.status_code in (301, 302, 303, 307, 308):
+            
+            if 'Location' not in response.headers:
+                print("Missing 'Location' header. No Redirect.")
+                return list()
+        
+            redirectCounter += 1
+            location = response.headers['Location']
+            currentURL = urljoin(currentURL, location)
+        
+        else:
+            
+            print(f"Status Code {response.status_code}. Exiting.")
+            return list()
+        
+    print(f"Reached redirect limit ({maxRedirectLimit}). Exiting")
+    return list()
+    
+    
+    # Handles Redirects/status codes (301, 302, 303, 307, 308)
+    # Might have to normalize the
+            
+
 
 def extract_next_links(url, resp):
     if resp.status == 200:
@@ -145,6 +191,7 @@ def extract_next_links(url, resp):
         # LONGEST WEBPAGE (URL, WORD_COUNT)
         # UPDATE DICTIONARY OF WORDS (WEBTOKENS)
         # UPDATE SUBDOMAIN CRAWLED
+        
 
         return links
 
