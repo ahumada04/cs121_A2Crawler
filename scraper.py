@@ -78,7 +78,7 @@ def scraper(url, resp):
 #     canonical_url = urlunparse((scheme, netloc, path, "", query, fragment))
 #     return canonical_url
 
-
+# test test test
 def jsonStats(word_list, url):
     word_count = len(word_list)
     webtokens = tk.computeWordFrequencies(word_list)
