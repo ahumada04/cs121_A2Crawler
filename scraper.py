@@ -37,6 +37,36 @@ def canonicalize(url):
     return canonical_url
 
 
+def jsonStats(word_list, url):
+    word_count = len(word_list)
+    webtokens = tk.computeWordFrequencies(word_list)
+    webPageFreq = {url: word_count}
+    subdomain = extract_subdomain(url)
+
+    if not os.path.exists("crawlerStat.json"):
+        with open("crawlerStat.json", "w") as jsonFile:
+            dump([webtokens, webPageFreq, {subdomain: 1}], jsonFile, indent=4, ensure_ascii=False)
+
+    else:
+        with open("crawlerStat.json", "r+", encoding="utf-8") as jsonFile:
+            jsonDicts = load(jsonFile)
+            jsonFreq, jsonWebPage, jsonSubDomain = jsonDicts
+
+            for key, value in webtokens.items():
+                jsonFreq[key] = jsonFreq.get(key, 0) + value
+
+            if subdomain in jsonSubDomain:
+                jsonSubDomain[subdomain] += 1
+            else:
+                jsonSubDomain[subdomain] = 1
+
+            jsonWebPage.update(webPageFreq)
+
+            jsonFile.seek(0)
+            jsonFile.truncate()
+            dump([jsonFreq, jsonWebPage, jsonSubDomain], jsonFile, indent=4, ensure_ascii=False)
+
+
 def extract_next_links(url, resp):
     if resp.status == 200:
         # soup class/html parser from external lib, download dependencies using install command from website below
@@ -48,30 +78,9 @@ def extract_next_links(url, resp):
         print(f"Extracted {len(links)} links.")
 
         word_list = tk.tokenize(soup.get_text())
-        word_count = len(word_list)
-        webtokens = tk.computeWordFrequencies(word_list)
-        webPageFreq = {url: word_count}
-        # subdomain = extract_subdomain(url)
 
-        # # UPDATE JSON WITH:
-
-        if not os.path.exists("crawlerStat.json"):
-            with open("crawlerStat.json", "w") as jsonFile:
-                dump([webtokens, webPageFreq], jsonFile, indent=4, ensure_ascii=False)
-
-        else:
-            with open("crawlerStat.json", "r+", encoding="utf-8") as jsonFile:
-                jsonDicts = load(jsonFile)
-                jsonFreq, jsonWebPage = jsonDicts
-
-                for key, value in webtokens.items():
-                    jsonFreq[key] = jsonFreq.get(key, 0) + value
-
-                jsonWebPage.update(webPageFreq)
-
-                jsonFile.seek(0)
-                jsonFile.truncate()
-                dump([jsonFreq, jsonWebPage], jsonFile, indent=4, ensure_ascii=False)
+        jsonStats(word_list, url)
+        # # UPDATE JSON WITH
 
         # LONGEST WEBPAGE (URL, WORD_COUNT)
         # UPDATE DICTIONARY OF WORDS (WEBTOKENS)
