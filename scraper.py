@@ -174,8 +174,8 @@ def is_valid(url):
 
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
-        
-        # # Trap detection
+
+        # Trap detection
         if re.search(r'/page/\d+', url):
             return False
         if re.search(r'[\?&]version=\d+', url) or re.search(r'[\?&]action=diff&version=\d+', url):
