@@ -44,12 +44,6 @@ class SimHash:
         """Compute the Hamming distance between two hash values."""
         return bin(hash1 ^ hash2).count('1')
 
-    def is_near_duplicate(self, content1, content2, threshold=6):  # 90% similarity
-        """Check if two contents are near-duplicates using SimHash."""
-        hash1 = self.compute(content1)
-        hash2 = self.compute(content2)
-        return self.hamming_distance(hash1, hash2) <= threshold
-
 
 simhash = SimHash()
 
@@ -79,12 +73,14 @@ def scraper(url, resp):
 #     return canonical_url
 
 
-def jsonStats(word_list, url):
+def jsonStats(soup_text, url):
+    word_list = tk.tokenize(soup_text)
     word_count = len(word_list)
     webtokens = tk.computeWordFrequencies(word_list)
     webPageFreq = {url: word_count}
     subdomain = extract_subdomain(url)
-    simhash_value = simhash.compute(word_list)
+
+    simhash_value = simhash.compute(soup_text)
 
     if not os.path.exists("crawlerStat.json"):
         with open("crawlerStat.json", "w") as jsonFile:
@@ -96,7 +92,7 @@ def jsonStats(word_list, url):
             jsonFreq, jsonWebPage, jsonSubDomain, jsonSimhashes = jsonDicts
 
             duplicate_found = any(
-                simhash.is_near_duplicate(existing_simhash, simhash_value)
+                simhash.hamming_distance(existing_simhash, simhash_value) <= 6
                 for existing_simhash in jsonSimhashes.values()
             )
 
@@ -131,9 +127,7 @@ def extract_next_links(url, resp):
                  for link in scraped_links if link.get('href')]
         print(f"Extracted {len(links)} links.")
 
-        word_list = tk.tokenize(soup.get_text())
-
-        if not (jsonStats(word_list, url)):
+        if not (jsonStats(soup.get_text(), url)):
             return []
         # # UPDATE JSON WITH
 
