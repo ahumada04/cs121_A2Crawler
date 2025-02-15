@@ -171,7 +171,7 @@ def extract_subdomain(url):
     return subdomain
 
 
-# uci domains only allowed
+# uci domains only alloweddd
 ALLOWED_DOMAINS = {
     ".ics.uci.edu",
     ".cs.uci.edu",
