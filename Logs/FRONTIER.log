@@ -1,4 +1,5 @@
 2025-02-12 21:33:58,761 - FRONTIER - INFO - Found 1848 urls to be downloaded from 7605 total urls discovered.
+<<<<<<< HEAD
 2025-02-12 23:56:56,076 - FRONTIER - INFO - Found 1869 urls to be downloaded from 8047 total urls discovered.
 2025-02-13 01:12:53,680 - FRONTIER - INFO - Found 1883 urls to be downloaded from 8250 total urls discovered.
 2025-02-13 03:24:13,065 - FRONTIER - INFO - Found 2014 urls to be downloaded from 9716 total urls discovered.
@@ -64,12 +65,7 @@
 2025-02-14 13:29:55,337 - FRONTIER - INFO - Found 0 urls to be downloaded from 4 total urls discovered.
 2025-02-14 13:30:22,215 - FRONTIER - INFO - Found save file frontier.shelve, deleting it.
 2025-02-14 14:12:36,664 - FRONTIER - INFO - Found save file frontier.shelve, deleting it.
-2025-02-14 15:43:47,095 - FRONTIER - INFO - Found 1076 urls to be downloaded from 7360 total urls discovered.
-2025-02-14 15:47:04,540 - FRONTIER - INFO - Found 1088 urls to be downloaded from 7383 total urls discovered.
-2025-02-14 15:47:46,045 - FRONTIER - INFO - Found save file frontier.shelve, deleting it.
-2025-02-14 15:48:38,713 - FRONTIER - INFO - Found 31 urls to be downloaded from 46 total urls discovered.
-2025-02-14 15:59:35,052 - FRONTIER - INFO - Found 37 urls to be downloaded from 58 total urls discovered.
-2025-02-14 16:00:03,629 - FRONTIER - INFO - Found save file frontier.shelve, deleting it.
-2025-02-14 16:00:41,814 - FRONTIER - INFO - Found save file frontier.shelve, deleting it.
-2025-02-14 16:00:57,391 - FRONTIER - INFO - Found save file frontier.shelve, deleting it.
-2025-02-14 16:01:41,634 - FRONTIER - INFO - Found save file frontier.shelve, deleting it.
+=======
+2025-02-14 17:00:32,866 - FRONTIER - INFO - Found 1854 urls to be downloaded from 8594 total urls discovered.
+2025-02-14 17:01:54,429 - FRONTIER - INFO - Found 1977 urls to be downloaded from 8816 total urls discovered.
+>>>>>>> 5491ff31e67a80af8e521212f1f59d837a83082c

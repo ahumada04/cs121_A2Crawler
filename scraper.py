@@ -1,9 +1,9 @@
 import re
+import hashlib
+import numpy as np
 from json import load, dump
 import os
 import tokenizer as tk
-from urllib.parse import urlparse, urldefrag, urljoin
-
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode, urljoin, urldefrag
 
 from bs4 import BeautifulSoup
@@ -12,66 +12,135 @@ from bs4 import BeautifulSoup
 # URL_MAXLEN = 225
 # SEGMENTS_MAXLEN = 10
 # QUERY_PARAMS_MAXLEN = 5
+#SIMHASH_THRESHOLD = 6  # Max Hamming distance for duplicates
+
+MAX_FILE_SIZE = 10 * 1024 * 1024 
+
+
+class SimHash:
+    def __init__(self, hash_size=64):
+        self.hash_size = hash_size
+
+    def _hash(self, token):
+        """Hash a token into a fixed-size integer."""
+        return int(hashlib.md5(token.encode()).hexdigest(), 16) & ((1 << self.hash_size) - 1)
+
+    def compute(self, text):
+        """Compute the SimHash fingerprint of the input text."""
+        tokens = text.split()  # Simple tokenization by whitespace
+        vector = np.zeros(self.hash_size)
+
+        for token in tokens:
+            token_hash = self._hash(token)
+            for i in range(self.hash_size):
+                bit = (token_hash >> i) & 1
+                vector[i] += 1 if bit else -1
+
+        # Convert vector to final hash
+        fingerprint = 0
+        for i in range(self.hash_size):
+            if vector[i] > 0:
+                fingerprint |= (1 << i)
+
+        return fingerprint
+
+    def hamming_distance(self, hash1, hash2):
+        """Compute the Hamming distance between two hash values."""
+        return bin(hash1 ^ hash2).count('1')
+
+
+simhash = SimHash()
+
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
-def canonicalize(url):
-    parsed = urlparse(url)
-    
-    scheme = parsed.scheme
-    netloc = parsed.netloc
 
-    IGNORE_PARAMS = {"ical", "outlook-ical"}
-    filtered_query = [(key, value) for key, value in parse_qsl(parsed.query) if key not in IGNORE_PARAMS]
-    query = urlencode(sorted(filtered_query))
+# def canonicalize(url):
+#     parsed = urlparse(url)
+#
+#     scheme = parsed.scheme
+#     netloc = parsed.netloc
+#
+#     IGNORE_PARAMS = {"ical", "outlook-ical"}
+#     filtered_query = [(key, value) for key, value in parse_qsl(parsed.query) if key not in IGNORE_PARAMS]
+#     query = urlencode(sorted(filtered_query))
+#
+#     path = parsed.path
+#     if path != "/" and path.endswith("/"):
+#         path = path[:-1]
+#
+#     fragment = ""  # Remove fragment identifiers
+#
+#     canonical_url = urlunparse((scheme, netloc, path, "", query, fragment))
+#     return canonical_url
 
-    path = parsed.path
-    if path != "/" and path.endswith("/"):
-        path = path[:-1]
+#testtestestestststststststestsetts
 
-    fragment = ""  # Remove fragment identifiers
+def jsonStats(soup_text, url):
+    word_list = tk.tokenize(soup_text)
+    word_count = len(word_list)
+    webtokens = tk.computeWordFrequencies(word_list)
+    webPageFreq = {url: word_count}
+    subdomain = extract_subdomain(url)
 
-    canonical_url = urlunparse((scheme, netloc, path, "", query, fragment))
-    return canonical_url
+    simhash_value = simhash.compute(soup_text)
+
+    if not os.path.exists("crawlerStat.json"):
+        with open("crawlerStat.json", "w") as jsonFile:
+            dump([webtokens, webPageFreq, {subdomain: 1}, {url: simhash_value}], jsonFile, indent=4, ensure_ascii=False)
+
+    else:
+        with open("crawlerStat.json", "r+", encoding="utf-8") as jsonFile:
+            jsonDicts = load(jsonFile)
+            jsonFreq, jsonWebPage, jsonSubDomain, jsonSimhashes = jsonDicts
+
+            duplicate_found = any(
+                simhash.hamming_distance(existing_simhash, simhash_value) <= 6
+                for existing_simhash in jsonSimhashes.values()
+            )
+
+            if duplicate_found:
+                return False
+
+            for key, value in webtokens.items():
+                jsonFreq[key] = jsonFreq.get(key, 0) + value
+
+            if subdomain in jsonSubDomain:
+                jsonSubDomain[subdomain] += 1
+            else:
+                jsonSubDomain[subdomain] = 1
+
+            jsonWebPage.update(webPageFreq)
+            jsonSimhashes[url] = simhash_value
+
+            jsonFile.seek(0)
+            jsonFile.truncate()
+            dump([jsonFreq, jsonWebPage, jsonSubDomain, jsonSimhashes], jsonFile, indent=4, ensure_ascii=False)
+
+    return True
 
 
 def extract_next_links(url, resp):
     if resp.status == 200:
         # soup class/html parser from external lib, download dependencies using install command from website below
         # https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+
+        content_length = len(resp.raw_response.content)
+        if content_length > MAX_FILE_SIZE:
+            print(f"Skipping {url} (File too large: {content_length} bytes)")
+            return []
+        
         soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
         scraped_links = soup.find_all('a')
         links = [urljoin(url, urldefrag(link.get('href')).url)
                  for link in scraped_links if link.get('href')]
         print(f"Extracted {len(links)} links.")
 
-        word_list = tk.tokenize(soup.get_text())
-        word_count = len(word_list)
-        webtokens = tk.computeWordFrequencies(word_list)
-        webPageFreq = {url: word_count}
-        # subdomain = extract_subdomain(url)
-
-        # # UPDATE JSON WITH:
-
-        if not os.path.exists("crawlerStat.json"):
-            with open("crawlerStat.json", "w") as jsonFile:
-                dump([webtokens, webPageFreq], jsonFile, indent=4, ensure_ascii=False)
-
-        else:
-            with open("crawlerStat.json", "r+", encoding="utf-8") as jsonFile:
-                jsonDicts = load(jsonFile)
-                jsonFreq, jsonWebPage = jsonDicts
-
-                for key, value in webtokens.items():
-                    jsonFreq[key] = jsonFreq.get(key, 0) + value
-
-                jsonWebPage.update(webPageFreq)
-
-                jsonFile.seek(0)
-                jsonFile.truncate()
-                dump([jsonFreq, jsonWebPage], jsonFile, indent=4, ensure_ascii=False)
+        if not (jsonStats(soup.get_text(), url)):
+            return []
+        # # UPDATE JSON WITH
 
         # LONGEST WEBPAGE (URL, WORD_COUNT)
         # UPDATE DICTIONARY OF WORDS (WEBTOKENS)
@@ -98,13 +167,15 @@ def extract_next_links(url, resp):
 def extract_subdomain(url):
     parsed = urlparse(url)
     domain = parsed.netloc
+    parts = domain.split('.')
 
     # Extract subdomain
-    subdomain = '.'.join(domain.split('.')[:-2])  # Gives subdomain part
+    if len(parts) > 2:
+        return '.'.join(parts[:-2])  # Gives subdomain part
     return subdomain
 
 
-# uci domains only allowed
+# uci domains only allowedddd
 ALLOWED_DOMAINS = {
     ".ics.uci.edu",
     ".cs.uci.edu",
@@ -126,7 +197,7 @@ def is_allowed_domain(url):
 # list of paths TO AVOID
 # update as we go
 BANNED_PATH = {
-    "/events/"
+    "/events/",
     "/pdf/"
     # ....
 }
@@ -165,8 +236,8 @@ def is_valid(url):
 
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
-        
-        # # Trap detection
+
+        # Trap detection
         if re.search(r'/page/\d+', url):
             return False
         if re.search(r'[\?&]version=\d+', url) or re.search(r'[\?&]action=diff&version=\d+', url):
