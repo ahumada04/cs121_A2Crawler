@@ -4,8 +4,7 @@ import numpy as np
 from json import load, dump
 import os
 import tokenizer as tk
-from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode, urljoin, urldefrag
-import requests
+from urllib.parse import urlparse, urljoin, urldefrag
 
 from bs4 import BeautifulSoup
 
@@ -16,6 +15,7 @@ from bs4 import BeautifulSoup
 #SIMHASH_THRESHOLD = 6  # Max Hamming distance for duplicates
 
 MAX_FILE_SIZE = 10 * 1024 * 1024 
+MIN_FILE_SIZE = 500
 
 
 class SimHash:
@@ -28,7 +28,7 @@ class SimHash:
 
     def compute(self, text):
         """Compute the SimHash fingerprint of the input text."""
-        tokens = text.split()  # Simple tokenization by whitespace
+        tokens = tk.tokenize(text)  # Simple tokenization by whitespace
         vector = np.zeros(self.hash_size)
 
         for token in tokens:
@@ -53,31 +53,21 @@ class SimHash:
 simhash = SimHash()
 
 
-def scraper(url, resp):
-    links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+def scraper(url, resp, visited_urls):
+    try:
+        # Attempt to extract next links from the response
+        links = extract_next_links(url, resp, visited_urls)
+        # Filter valid links based on the is_valid check
+        valid_links = [link for link in links if is_valid(link)]
+        return valid_links
 
+    except Exception as e:
+        print(f"Error in scraper for URL {url}: {e}")
+        return []
 
-# def canonicalize(url):
-#     parsed = urlparse(url)
-#
-#     scheme = parsed.scheme
-#     netloc = parsed.netloc
-#
-#     IGNORE_PARAMS = {"ical", "outlook-ical"}
-#     filtered_query = [(key, value) for key, value in parse_qsl(parsed.query) if key not in IGNORE_PARAMS]
-#     query = urlencode(sorted(filtered_query))
-#
-#     path = parsed.path
-#     if path != "/" and path.endswith("/"):
-#         path = path[:-1]
-#
-#     fragment = ""  # Remove fragment identifiers
-#
-#     canonical_url = urlunparse((scheme, netloc, path, "", query, fragment))
-#     return canonical_url
 
 #testtestestestststststststestsetts
+
 
 def jsonStats(soup_text, url):
     word_list = tk.tokenize(soup_text)
@@ -122,53 +112,28 @@ def jsonStats(soup_text, url):
 
     return True
 
-def handleRedirects(url, maxRedirectLimit):
-    
-    visitedURLS = set()
-    currentURL = url
-    redirectCounter = 0
-    
-    while redirectCounter < maxRedirectLimit:
-        if currentURL in visitedURLS:
-            print(f"Loop found in {currentURL}. Extracted 0 links.")
-            return list()
 
-        visitedURLS.add(currentURL)
-        
-        try:
-            response = requests.get(currentURL, allow_redirects = False, timeout = 5)
-        
-        except requests.exceptions.RequestException as e:
-            print(f"Request Fail: {e}")
-            return list()
-        
-        if response.status_code == 200:
-            return currentURL # Should not return currentURL needs to return the extracted links from successful status code 
-        elif response.status_code in (301, 302, 303, 307, 308):
-            
-            if 'Location' not in response.headers:
-                print("Missing 'Location' header. No Redirect.")
-                return list()
-        
-            redirectCounter += 1
-            location = response.headers['Location']
-            currentURL = urljoin(currentURL, location)
-        
-        else:
-            
-            print(f"Status Code {response.status_code}. Exiting.")
-            return list()
-        
-    print(f"Reached redirect limit ({maxRedirectLimit}). Exiting")
-    return list()
-    
-    
-    # Handles Redirects/status codes (301, 302, 303, 307, 308)
-    # Might have to normalize the
-            
+def extract_next_links(url, resp, visited_urls, max_redirects=5):
+    if 300 <= resp.status < 400:
+        redirected_url = resp.raw_response.headers.get("Location")
+        if redirected_url:
+            redirected_url = urljoin(url, redirected_url)  # Handle relative redirects
 
+            # Check if we've already visited this redirected URL to avoid infinite loops
+            if redirected_url in visited_urls:
+                print(f"Skipping {redirected_url} (Already visited, avoiding infinite redirect loop)")
+                return []
 
-def extract_next_links(url, resp):
+            # If the number of redirects exceeds the limit, skip it
+            if visited_urls.get(redirected_url, 0) >= max_redirects:
+                print(f"Skipping {redirected_url} (Exceeded maximum redirects)")
+                return []
+
+            # Mark the redirected URL as visited (incrementing the redirect count)
+            visited_urls[redirected_url] = visited_urls.get(redirected_url, 0) + 1
+
+            return [redirected_url]
+
     if resp.status == 200:
         # soup class/html parser from external lib, download dependencies using install command from website below
         # https://www.crummy.com/software/BeautifulSoup/bs4/doc/
@@ -177,8 +142,17 @@ def extract_next_links(url, resp):
         if content_length > MAX_FILE_SIZE:
             print(f"Skipping {url} (File too large: {content_length} bytes)")
             return []
-        
-        soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+
+        if content_length < MIN_FILE_SIZE:
+            print(f"Skipping {url} (File too small: {content_length} bytes)")
+            return []
+
+        try:
+            soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+        except Exception as e:
+            print(f"Error parsing page {url}: {e}")
+            return []
+
         scraped_links = soup.find_all('a')
         links = [urljoin(url, urldefrag(link.get('href')).url)
                  for link in scraped_links if link.get('href')]
@@ -191,7 +165,6 @@ def extract_next_links(url, resp):
         # LONGEST WEBPAGE (URL, WORD_COUNT)
         # UPDATE DICTIONARY OF WORDS (WEBTOKENS)
         # UPDATE SUBDOMAIN CRAWLED
-        
 
         return links
 
@@ -302,4 +275,3 @@ def is_valid(url):
     except TypeError as e:
         print("TypeError for ", e)
         raise
-
