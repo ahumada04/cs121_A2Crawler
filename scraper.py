@@ -172,7 +172,6 @@ def extract_subdomain(url):
     # Extract subdomain
     if len(parts) > 2:
         return '.'.join(parts[:-2])  # Gives subdomain part
-    return subdomain
 
 
 # uci domains only allowedddd
