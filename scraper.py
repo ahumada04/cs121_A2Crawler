@@ -26,7 +26,16 @@ class SimHash:
         """Hash a token into a fixed-size integer."""
         return int(hashlib.md5(token.encode()).hexdigest(), 16) & ((1 << self.hash_size) - 1)
 
+    # CHATGBT CODE FOR A LIGHT-WEIGHT HASHER, LOW PRIORITY NGL
+    # def _hash(self, token):
+    #     """Hash a token into a fixed-size integer using Python's built-in hash."""
+    #     return hash(token) & ((1 << self.hash_size) - 1)
+
     def compute(self, text):
+        # EDGE CASE IF TEXT IS EMPTY
+        # if not text:
+        #     return 0  # Return 0 for empty input
+
         """Compute the SimHash fingerprint of the input text."""
         tokens = tk.tokenize(text)  # Simple tokenization by whitespace
         vector = np.zeros(self.hash_size)
@@ -193,8 +202,11 @@ def extract_subdomain(url):
     if len(parts) > 2:
         return '.'.join(parts[:-2])  # Gives subdomain part
 
+    # null return, worried might mess with subdomain storing
+    # return None # no subdomains found
 
-# uci domains only allowedddd
+
+# uci domains only alloweddddd
 ALLOWED_DOMAINS = {
     ".ics.uci.edu",
     ".cs.uci.edu",
@@ -230,6 +242,18 @@ def is_allowed_path(url):
             return False
     return True
 
+# CHATGBT CODE THAT WILL ADD MORE ROBUST TRAP DETECTION
+# WOULD APPRECIATE SECOND LOOK
+# def is_trap(url):
+#     trap_patterns = [
+#         r'/page/\d+',
+#         r'[\?&]version=\d+',
+#         r'[\?&]action=diff&version=\d+',
+#         r'/calendar/\d{4}/\d{2}/\d{2}',
+#         r'[\?&]sessionid=',
+#     ]
+#     return any(re.search(pattern, url) for pattern in trap_patterns)
+
 
 def is_valid(url):
     # Decide whether to crawl this url or not.
@@ -253,14 +277,18 @@ def is_valid(url):
         if not is_allowed_path(parsed.netloc):
             return False
 
-        if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
-            return False
+        # Reason added twice or is this on purpose?
+        # if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
+        #     return False
 
         # Trap detection
         if re.search(r'/page/\d+', url):
             return False
         if re.search(r'[\?&]version=\d+', url) or re.search(r'[\?&]action=diff&version=\d+', url):
             return False
+        # WOULD REPLACE TRAP DETECTION ABOVE IF APPROVED
+        # if is_trap(url):
+        #     return False
 
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
