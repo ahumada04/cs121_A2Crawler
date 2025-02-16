@@ -289,7 +289,21 @@ def is_valid(url):
         # WOULD REPLACE TRAP DETECTION ABOVE IF APPROVED
         # if is_trap(url):
         #     return False
-
+        invalid_patterns = [
+            r'\b\d{4}[-/]\d{2}[-/]\d{2}\b|\b\d{2}[-/]\d{2}[-/]\d{4}\b',
+            r'\b\d{4}[-/]\d{2}(-\d{2})?\b',
+            r'[?&](date|year|month|day|view|do|tab_files|ical)=[^&]*',
+            r'gitlab\.ics\.uci\.edu.*/(-/|users/|blob/|commits/|tree/|compare|explore/|\.git$|/[^/]+/[^/]+)',
+            r'sli\.ics\.uci\.edu.*\?action=download&upname=',
+            r'wp-login\.php\?redirect_to=[^&]+',
+            r'/page/\d+',
+            r'[\?&]version=\d+',
+            r'[\?&]action=diff&version=\d+',
+            r'[\?&]format=txt',
+            r'\b\d{4}-(spring|summer|fall|winter)\b'
+        ]
+        return not any(re.search(pattern, url, re.IGNORECASE) for pattern in invalid_patterns)
+    
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
