@@ -47,7 +47,7 @@ def jsonExtract(command):
             topweb = max(websites.items(), key=lambda x: x[1])
             print(f"Top Website: {topweb[0]} "
                   f"\nWord Count:{topweb[1]}")
-        elif command == "topSubs":
+        elif command == "topSub":
             subdomain = data[2]
             topsub = max(subdomain.items(), key=lambda x: x[1])
             print(f"Top subdomain: {topsub[0]} "
