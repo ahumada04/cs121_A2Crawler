@@ -133,14 +133,6 @@ def extract_next_links(url, resp, visited_urls, max_redirects=5):
                 print(f"Skipping {redirected_url} (Already visited, avoiding infinite redirect loop)")
                 return []
 
-            # If the number of redirects exceeds the limit, skip it
-            if visited_urls.get(redirected_url, 0) >= max_redirects:
-                print(f"Skipping {redirected_url} (Exceeded maximum redirects)")
-                return []
-
-            # Mark the redirected URL as visited (incrementing the redirect count)
-            visited_urls[redirected_url] = visited_urls.get(redirected_url, 0) + 1
-
             return [redirected_url]
 
     if resp.status == 200:
@@ -302,8 +294,9 @@ def is_valid(url):
             r'[\?&]format=txt',
             r'\b\d{4}-(spring|summer|fall|winter)\b'
         ]
-        return not any(re.search(pattern, url, re.IGNORECASE) for pattern in invalid_patterns)
-    
+        if not any(re.search(pattern, url, re.IGNORECASE) for pattern in invalid_patterns):
+            return False
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
