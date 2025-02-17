@@ -168,19 +168,6 @@ def extract_next_links(url, resp, visited_urls, max_redirects=5):
         # UPDATE SUBDOMAIN CRAWLED
 
         return links
-
-    # KEEPING COMMENTS BELOW ON PURPOSE !!!!!!!!!!!!!!!!!!!!!
-
-    # url: the URL that was used to get the page
-    # resp.url: the actual url of the page
-    # resp.status: the status code returned by the server. 200 is OK, you got the page. Other numbers mean that there was some kind of problem.
-    # resp.error: when status is not 200, you can check the error here, if needed.
-    # resp.raw_response: this is where the page actually is. More specifically, the raw_response has two parts:
-    #         resp.raw_response.url: the url, again
-    #         resp.raw_response.content: the content of the page!
-    # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-
-
     print(resp.error)  # only prints if an error status was found
     return list()
 
@@ -217,34 +204,36 @@ def is_allowed_domain(url):
     return False
 
 
-# list of paths TO AVOID
-# update as we go
-BANNED_PATH = {
-    "/events/",
-    "/pdf/"
-    # ....
-}
-
-
 def is_allowed_path(url):
+    BANNED_PATH = {
+        "/events/",
+        "/pdf/"
+        # ....
+    }
+
     path = urlparse(url).path
-    # Check if the path is in any of the banned pathes
     for banned_paths in BANNED_PATH:
         if path == banned_paths:
             return False
     return True
 
-# CHATGBT CODE THAT WILL ADD MORE ROBUST TRAP DETECTION
-# WOULD APPRECIATE SECOND LOOK
-# def is_trap(url):
-#     trap_patterns = [
-#         r'/page/\d+',
-#         r'[\?&]version=\d+',
-#         r'[\?&]action=diff&version=\d+',
-#         r'/calendar/\d{4}/\d{2}/\d{2}',
-#         r'[\?&]sessionid=',
-#     ]
-#     return any(re.search(pattern, url) for pattern in trap_patterns)
+
+def is_trap(url):
+    trap_patterns = [
+        r'\b\d{4}[-/]\d{2}[-/]\d{2}\b|\b\d{2}[-/]\d{2}[-/]\d{4}\b',
+        r'\b\d{4}[-/]\d{2}(-\d{2})?\b',
+        r'[?&](date|year|month|day|view|do|tab_files|ical)=[^&]*',
+        r'gitlab\.ics\.uci\.edu.*/(-/|users/|blob/|commits/|tree/|compare|explore/|\.git$|/[^/]+/[^/]+)',
+        r'sli\.ics\.uci\.edu.*\?action=download&upname=',
+        r'wp-login\.php\?redirect_to=[^&]+',
+        r'/page/\d+',
+        r'[\?&]version=\d+',
+        r'[\?&]action=diff&version=\d+',
+        r'[\?&]format=txt',
+        r'\b\d{4}-(spring|summer|fall|winter)\b'
+    ]
+
+    return any(re.search(pattern, url) for pattern in trap_patterns)
 
 
 def is_valid(url):
@@ -257,44 +246,21 @@ def is_valid(url):
         if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
             return False
 
-        if not re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*", parsed.scheme):
-            return False
-
         # Check if the domain is allowed
         if not is_allowed_domain(url):
             return False
 
         # CURRENTLY COMMENTED OUT CAUSE UNSURE IF IT WORKS AS INTENDED
         # Check if the path is allowed (avoiding junk paths like calendars)
-        if not is_allowed_path(parsed.netloc):
+        if not is_allowed_path(url):
             return False
-
-        # Reason added twice or is this on purpose?
-        # if parsed.scheme in ("http", "https", "ftp", "ftps", "ws", "wss", "sftp", "smb") and not parsed.netloc:
-        #     return False
 
         # Trap detection
         if re.search(r'/page/\d+', url):
             return False
         if re.search(r'[\?&]version=\d+', url) or re.search(r'[\?&]action=diff&version=\d+', url):
             return False
-        # WOULD REPLACE TRAP DETECTION ABOVE IF APPROVED
-        # if is_trap(url):
-        #     return False
-        invalid_patterns = [
-            r'\b\d{4}[-/]\d{2}[-/]\d{2}\b|\b\d{2}[-/]\d{2}[-/]\d{4}\b',
-            r'\b\d{4}[-/]\d{2}(-\d{2})?\b',
-            r'[?&](date|year|month|day|view|do|tab_files|ical)=[^&]*',
-            r'gitlab\.ics\.uci\.edu.*/(-/|users/|blob/|commits/|tree/|compare|explore/|\.git$|/[^/]+/[^/]+)',
-            r'sli\.ics\.uci\.edu.*\?action=download&upname=',
-            r'wp-login\.php\?redirect_to=[^&]+',
-            r'/page/\d+',
-            r'[\?&]version=\d+',
-            r'[\?&]action=diff&version=\d+',
-            r'[\?&]format=txt',
-            r'\b\d{4}-(spring|summer|fall|winter)\b'
-        ]
-        if not any(re.search(pattern, url, re.IGNORECASE) for pattern in invalid_patterns):
+        if is_trap(url):
             return False
 
         return not re.match(
