@@ -208,7 +208,6 @@ def is_allowed_path(url):
     BANNED_PATH = {
         "/events/",
         "/pdf/"
-        # ....
     }
 
     path = urlparse(url).path
