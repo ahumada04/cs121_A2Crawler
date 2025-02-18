@@ -1,5 +1,6 @@
-import json
 import sys
+import json
+from urllib.parse import urlparse
 
 
 commands = {
@@ -7,6 +8,19 @@ commands = {
     "topSub",
     "topWeb"
 }
+
+
+def extract_subdomain(url):
+    parsed = urlparse(url)
+    domain = parsed.netloc
+    parts = domain.split('.')
+
+    # Extract subdomain
+    if len(parts) > 2:
+        return '.'.join(parts[:-2])  # Gives subdomain part
+
+    # null return, worried might mess with subdomain storing
+    # return None # no subdomains found
 
 
 def main():
@@ -46,12 +60,31 @@ def jsonExtract(command):
             websites = data[1]
             topweb = max(websites.items(), key=lambda x: x[1])
             print(f"Top Website: {topweb[0]} "
-                  f"\nWord Count:{topweb[1]}")
+                  f"\nWord Count:{topweb[1]}"
+                f"\n Website Count: {len(websites)}")
         elif command == "topSub":
-            subdomain = data[2]
-            topsub = max(subdomain.items(), key=lambda x: x[1])
-            print(f"Top subdomain: {topsub[0]} "
-                  f"\nFrequency: {topsub[1]}")
+            subdomains = {}
+            for url in data[1]:
+                subdomain = extract_subdomain(url)
+                if subdomain:
+                    if subdomain in subdomains:
+                        subdomains[subdomain] += 1
+                    else:
+                        subdomains[subdomain] = 1
+
+            if subdomains:
+                # Sort subdomains by frequency in descending order
+                sorted_subdomains = sorted(subdomains.items(), key=lambda x: -x[1])
+
+                # Extract the top 10 subdomains
+                top10 = sorted_subdomains[:10]
+
+                # Display the top 10 subdomains and their frequencies
+                print("Top 10 Subdomains:")
+                for subdomain, freq in top10:
+                    print(f"{subdomain}: {freq}")
+            else:
+                print("No subdomains found.")
     except FileNotFoundError:
         print(f"Error: JSON file  not found.")
     except json.JSONDecodeError:
