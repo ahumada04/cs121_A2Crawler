@@ -5,6 +5,7 @@ from json import load, dump
 import os
 import tokenizer as tk
 from urllib.parse import urlparse, urljoin, urldefrag
+import tempfile
 
 from bs4 import BeautifulSoup
 
@@ -92,7 +93,7 @@ def jsonStats(soup_text, url):
             dump([webtokens, webPageFreq, {subdomain: 1}, {url: simhash_value}], jsonFile, indent=4, ensure_ascii=False)
 
     else:
-        with open("crawlerStat.json", "r+", encoding="utf-8") as jsonFile:
+        with open("crawlerStat.json", "r", encoding="utf-8") as jsonFile:
             jsonDicts = load(jsonFile)
             jsonFreq, jsonWebPage, jsonSubDomain, jsonSimhashes = jsonDicts
 
@@ -115,9 +116,11 @@ def jsonStats(soup_text, url):
             jsonWebPage.update(webPageFreq)
             jsonSimhashes[url] = simhash_value
 
-            jsonFile.seek(0)
-            jsonFile.truncate()
-            dump([jsonFreq, jsonWebPage, jsonSubDomain, jsonSimhashes], jsonFile, indent=4, ensure_ascii=False)
+        fd, temp_filename = tempfile.mkstemp(suffix=".json")
+        with os.fdopen(fd, "w", encoding="utf-8") as tmpFile:
+            dump([jsonFreq, jsonWebPage, jsonSubDomain, jsonSimhashes], tmpFile, indent=4, ensure_ascii=False)
+
+        os.replace(temp_filename, "crawlerStat.json")
 
     return True
 
