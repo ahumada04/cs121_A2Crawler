@@ -56,7 +56,7 @@ def jsonExtract(command):
             topweb = max(websites.items(), key=lambda x: x[1])
             print(f"Top Website: {topweb[0]} "
                   f"\nWord Count:{topweb[1]}"
-                f"\n Website Count: {len(websites)}")
+                f"\nWebsite Count: {len(websites)}")
         elif command == "topSub":
             subdomains = {}
             for url in data[1]:
@@ -68,9 +68,11 @@ def jsonExtract(command):
             if subdomains:
                 # Sort subdomains by frequency/ alphabetic
                 sorted_subdomains = sorted(subdomains.items(), key=lambda x: (-x[1], x[0]))
-                print("Top 10 Subdomains:")
+                print("Top Subdomains:")
                 for subdomain, freq in sorted_subdomains:
                     print(f"{subdomain}: {freq}")
+                print(f"\nSubdomain Count: {len(sorted_subdomains)}")
+
             else:
                 print("No subdomains found.")
     except FileNotFoundError:
