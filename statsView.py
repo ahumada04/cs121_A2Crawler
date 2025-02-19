@@ -11,16 +11,11 @@ commands = {
 
 
 def extract_subdomain(url):
-    parsed = urlparse(url)
-    domain = parsed.netloc
-    parts = domain.split('.')
-
-    # Extract subdomain
-    if len(parts) > 2:
-        return '.'.join(parts[:-2])  # Gives subdomain part
-
-    # null return, worried might mess with subdomain storing
-    # return None # no subdomains found
+    parsed_url = urlparse(url)
+    domain = parsed_url.netloc
+    if domain.startswith("www."):
+        domain = domain[4:]  # Removes 'www.'
+    return domain if domain else None
 
 
 def main():
@@ -67,21 +62,14 @@ def jsonExtract(command):
             for url in data[1]:
                 subdomain = extract_subdomain(url)
                 if subdomain:
-                    if subdomain in subdomains:
-                        subdomains[subdomain] += 1
-                    else:
-                        subdomains[subdomain] = 1
+                    full_url = f"http://{subdomain}"  # Ensure all subdomains follow write up standard
+                    subdomains[full_url] = subdomains.get(full_url, 0) + 1
 
             if subdomains:
-                # Sort subdomains by frequency in descending order
-                sorted_subdomains = sorted(subdomains.items(), key=lambda x: -x[1])
-
-                # Extract the top 10 subdomains
-                top10 = sorted_subdomains[:10]
-
-                # Display the top 10 subdomains and their frequencies
+                # Sort subdomains by frequency/ alphabetic
+                sorted_subdomains = sorted(subdomains.items(), key=lambda x: (-x[1], x[0]))
                 print("Top 10 Subdomains:")
-                for subdomain, freq in top10:
+                for subdomain, freq in sorted_subdomains:
                     print(f"{subdomain}: {freq}")
             else:
                 print("No subdomains found.")
