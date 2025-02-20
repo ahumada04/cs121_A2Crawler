@@ -26,7 +26,7 @@ class SimHash:
         """Hash a token into a fixed-size integer."""
         return int(hashlib.md5(token.encode()).hexdigest(), 16) & ((1 << self.hash_size) - 1)
 
-    # CHATGBT CODE FOR A LIGHT-WEIGHT HASHER, LOW PRIORITY NGL
+    # ONLINE CODE FOR A LIGHT-WEIGHT HASHER, LOW PRIORITY NGL
     # def _hash(self, token):
     #     """Hash a token into a fixed-size integer using Python's built-in hash."""
     #     return hash(token) & ((1 << self.hash_size) - 1)
